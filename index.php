@@ -3,7 +3,6 @@ $baseDir  = dirname(__file__);
 $docDir   = $baseDir . '/pages/';
 $docIndex = 'index';
 
-require_once $baseDir . '/MarkdownWiki.php';
 require_once $baseDir . '/Markdown.php';
 
 //echo "Index.php: {$docDir}\n";
@@ -69,8 +68,7 @@ HTML;
 
 
 function renderPage($response) {
-
-echo <<<PAGE
+	echo <<<PAGE
 <html lang="en-GB">
 <head>
 	<title>{$response['title']}</title>
