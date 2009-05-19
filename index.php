@@ -11,23 +11,21 @@ require_once $baseDir . '/Markdown.php';
 
 // Parsing the request
 $request = getRequest($docIndex);
-echo '<pre>'; print_r($request); echo '</pre>';
-//phpinfo();
-
 $filename = "{$docDir}{$request->page}.markdown";
+
 if (file_exists($filename)) {
 	echo "Found: {$filename}\n";
-	$content = file_get_contents($filename);
-	
-	echo <<<HTML
-<pre>
-{$content}
-</pre>
-HTML;
+	$request->content = file_get_contents($filename);
+}
+
+// If content doesn't exist go into editing mode
+if (is_null($request->content)) {
+	$request->action = 'edit';
 }
 
 
-
+echo '<pre>'; print_r($request); echo '</pre>';
+//phpinfo();
 
 
 function getRequest($docIndex) {
@@ -51,6 +49,9 @@ function getRequest($docIndex) {
 	if ($request->page[strlen($request->page)-1]=='/') {
 		$request->page .= $docIndex;
 	}
+
+	$request->content = NULL;
+
 	return $request;
 }
 
