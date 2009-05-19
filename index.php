@@ -25,10 +25,10 @@ if (is_null($request->content)) {
 
 switch($request->action) {
 	case 'display':
-		doDisplay($request);
+		$response = doDisplay($request);
 		break;
 	case 'edit':
-		doEdit($request);
+		$response = doEdit($request);
 		break;
 	case 'history':
 	case 'admin':
@@ -38,21 +38,56 @@ switch($request->action) {
 		break;
 }
 
-echo '<pre>'; print_r($request); echo '</pre>';
+renderPage($response);
+
+
+//echo '<pre>'; print_r($request); echo '</pre>';
 //phpinfo();
 
 function doDisplay($request) {
+	$response = array('request'=>$request);
+
+	$response['title']   = "Displaying: {$request->page}";
 	$content = htmlspecialchars($request->content);
-	echo <<<HTML
+	$response['content'] = <<<HTML
 <pre>{$content}</pre>
 HTML;
+
+	return $response;
 }
 
 function doEdit($request) {
-	echo <<<HTML
+	$response = array('request'=>$request);
+
+	$response['title']   = "Editing: {$request->page}";
+	$response['content'] = <<<HTML
 <textarea cols="78" rows="20">{$request->content}</textarea>
 HTML;
+
+	return $response;
 }
+
+
+function renderPage($response) {
+
+echo <<<PAGE
+<html lang="en-GB">
+<head>
+	<title>{$response['title']}</title>
+</head>
+<body>
+	<div id="page">
+		<div id="head"></div>
+		<div id="content">{$response['content']}</div>	
+		<div id="related"></div>	
+		<div id="foot"></div>	
+	</div>
+</body>
+</html>
+PAGE;
+}
+
+
 
 
 function getRequest($docIndex) {
