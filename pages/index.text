@@ -3,3 +3,12 @@ PHP5 Markdown
 
 An editable website using Markdown syntax.
 An extra bit of text.
+
+A second paragraph to spell out *emphasised* text as well as **strongly emphasised** text. Sometimes it's useful to emphasise text using _underscores_ and __double underscores__ for just the right occasion.
+
+A second-level header
+---------------------
+
+There's nothing more important than a decent header structure.
+
+

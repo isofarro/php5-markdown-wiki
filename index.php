@@ -3,7 +3,7 @@ $baseDir  = dirname(__file__);
 $docDir   = $baseDir . '/pages/';
 $docIndex = 'index';
 
-require_once $baseDir . '/Markdown.php';
+require_once $baseDir . '/markdown.php';
 
 //echo "Index.php: {$docDir}\n";
 //echo "BaseDir: {$baseDir}\n";
@@ -64,11 +64,7 @@ function doDisplay($request) {
 	$response = array('request'=>$request);
 
 	$response['title']   = "Displaying: {$request->page}";
-	$content = $request->content;
-	//$content = htmlspecialchars($request->content);
-	$response['content'] = <<<HTML
-<pre>{$content}</pre>
-HTML;
+	$response['content'] = Markdown($request->content);
 
 	$response['footer'] = <<<HTML
 <ul>
@@ -116,11 +112,12 @@ HTML;
 		$msg = "<ul>\n{$msg}</ul>";
 	}
 	$response['messages'] = $msg;
-
+	$content = Markdown($request->post->text);
 	$response['title']   = "Preview: {$request->page}";
 	$response['content'] = <<<HTML
 <h2>Preview: {$request->page}</h2>
 {$response['messages']}
+{$content}
 <form action="{$request->path}/{$request->page}" method="post">
 	<fieldset>
 		<legend>Editing</legend>
@@ -172,9 +169,13 @@ function renderPage($response) {
 <body>
 	<div id="page">
 		<div id="head"></div>
-		<div id="content">{$response['content']}</div>	
+		<div id="content">
+{$response['content']}
+		</div>	
 		<div id="related"></div>	
-		<div id="foot">{$response['footer']}</div>	
+		<div id="foot">
+{$response['footer']}
+		</div>	
 	</div>
 </body>
 </html>
