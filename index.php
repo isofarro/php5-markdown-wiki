@@ -24,6 +24,9 @@ if (file_exists($request->filename)) {
 			$request->action = 'preview';
 		}
 	}
+} else {
+	$request->content = '';
+	$request->updated = 0;
 }
 
 // If content doesn't exist go into editing mode.
