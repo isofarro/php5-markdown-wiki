@@ -16,6 +16,14 @@ if (file_exists($request->filename)) {
 	//echo "Found: {$request->filename}\n";
 	$request->content = file_get_contents($request->filename);
 	$request->updated = filectime($request->filename);
+
+	if (!empty($request->post)) {
+		if ($request->updated > $request->post->updated) {
+			$request->messages[] =
+				"Editing conflict: The page you are editing has been updated by someone else.";
+			$request->action = 'preview';
+		}
+	}
 }
 
 // If content doesn't exist go into editing mode.
@@ -32,6 +40,9 @@ switch($request->action) {
 		break;
 	case 'save':
 		$response = doSave($request);
+		break;
+	case 'preview':
+		$response = doPreview($request);
 		break;
 	case 'history':
 	case 'admin':
@@ -73,8 +84,8 @@ function doEdit($request) {
 <form action="{$request->path}/{$request->page}" method="post">
 	<fieldset>
 		<legend>Editing</legend>
-		<label for="title">Title:</label><br>	
-		<input type="text" name="title" id="title" size="78"><br>
+		<label for="slug">Page name:</label><br>	
+		<input type="text" name="slug" id="slug" size="78"><br>
 		
 		<label for="text">Content:</label><br>	
 		<textarea cols="78" rows="20" name="text" id="text">{$request->content}</textarea>
@@ -90,6 +101,47 @@ HTML;
 
 	return $response;
 }
+
+
+function doPreview($request) {
+	$response = array('request'=>$request);
+
+	$msg = '';
+	if ($request->messages) {
+		foreach($request->messages as $message) {
+			$msg .= <<<HTML
+<li>{$message}</li>
+HTML;
+		}
+		$msg = "<ul>\n{$msg}</ul>";
+	}
+	$response['messages'] = $msg;
+
+	$response['title']   = "Preview: {$request->page}";
+	$response['content'] = <<<HTML
+<h2>Preview: {$request->page}</h2>
+{$response['messages']}
+<form action="{$request->path}/{$request->page}" method="post">
+	<fieldset>
+		<legend>Editing</legend>
+		<label for="slug">Page name:</label><br>	
+		<input type="text" name="slug" id="slug" size="78" value="{$request->post->slug}"><br>
+		
+		<label for="text">Content:</label><br>	
+		<textarea cols="78" rows="20" name="text" id="text">{$request->post->text}</textarea>
+		<br>
+
+		<input type="submit" name="preview" value="Preview">
+		<input type="submit" name="save" value="Save">
+		<input type="hidden" name="updated" value="{$request->post->updated}">
+	</fieldset>
+</form>
+HTML;
+	$response['footer'] = '';
+
+	return $response;
+}
+
 
 function doSave($request) {
 	return doDisplay($request);
@@ -129,12 +181,12 @@ function getRequest($docIndex) {
 		$request->post = (object) NULL;
 		$request->action = 'preview';
 
-		print_r($_POST);
+		//print_r($_POST);
 		if (!empty($_POST['save'])) {
 			$request->action = 'save';
 		}
 		
-		$request->post->title   = $_POST['title'];
+		$request->post->slug    = $_POST['slug'];
 		$request->post->text    = $_POST['text'];
 		$request->post->updated = $_POST['updated'];
 	} elseif ($_SERVER['REQUEST_METHOD']=='GET') {
@@ -162,6 +214,7 @@ function getRequest($docIndex) {
 	$request->filename = NULL;
 	$request->content  = NULL;
 	$request->path     = '/markdown.php';
+	$request->messages = array();
 
 	return $request;
 }
