@@ -186,7 +186,7 @@ function getRequest($docIndex) {
 			$request->action = 'save';
 		}
 		
-		$request->post->slug    = $_POST['slug'];
+		$request->post->slug    = slugify($_POST['slug']);
 		$request->post->text    = $_POST['text'];
 		$request->post->updated = $_POST['updated'];
 	} elseif ($_SERVER['REQUEST_METHOD']=='GET') {
@@ -217,6 +217,23 @@ function getRequest($docIndex) {
 	$request->messages = array();
 
 	return $request;
+}
+
+function slugify($text) {
+	$text = strtolower(trim($text));
+	$text = preg_replace(
+		array(
+			'/([\'\"]+)/',
+			'/([^a-z0-9]+)/',
+			'/(--+)/'
+		),
+		array(
+			'',
+			'-',
+			'-'
+		), $text
+	);
+	return $text;
 }
 
 ?>
