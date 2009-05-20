@@ -55,7 +55,7 @@ switch($request->action) {
 renderPage($response);
 
 
-echo '<pre>'; print_r($request); echo '</pre>';
+//echo '<pre>'; print_r($request); echo '</pre>';
 //phpinfo();
 
 function doDisplay($request) {
@@ -85,7 +85,7 @@ function doEdit($request) {
 	<fieldset>
 		<legend>Editing</legend>
 		<label for="slug">Page name:</label><br>	
-		<input type="text" name="slug" id="slug" size="78"><br>
+		<input type="text" name="slug" id="slug" size="78" value="{$request->page}"><br>
 		
 		<label for="text">Content:</label><br>	
 		<textarea cols="78" rows="20" name="text" id="text">{$request->content}</textarea>
@@ -144,6 +144,24 @@ HTML;
 
 
 function doSave($request) {
+	if (file_exists($request->filename) && 
+		$request->updated > $request->post->updated) {
+		$request->message[] = "Editing conflict";
+		return doPreview($request);
+	}
+	// TODO: check the directory exists
+	$directory = dirname($request->filename);
+	if (!file_exists($directory)) {
+		mkdir($directory, 0777, true);		
+	} elseif (!is_dir($directory)) {
+		$request->message[] =
+			"Cannot create {$request->page}";
+	}
+	file_put_contents(
+		$request->filename,
+		$request->post->text
+	);
+	$request->content = $request->post->text;
 	return doDisplay($request);
 }
 
@@ -224,7 +242,7 @@ function slugify($text) {
 	$text = preg_replace(
 		array(
 			'/([\'\"]+)/',
-			'/([^a-z0-9]+)/',
+			'/([^a-z0-9\/]+)/',
 			'/(--+)/'
 		),
 		array(
