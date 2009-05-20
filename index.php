@@ -13,7 +13,6 @@ $request = getRequest($docIndex);
 $request->filename = "{$docDir}{$request->page}.text";
 
 if (file_exists($request->filename)) {
-	//echo "Found: {$request->filename}\n";
 	$request->content = file_get_contents($request->filename);
 	$request->updated = filectime($request->filename);
 
@@ -65,7 +64,8 @@ function doDisplay($request) {
 	$response = array('request'=>$request);
 
 	$response['title']   = "Displaying: {$request->page}";
-	$content = htmlspecialchars($request->content);
+	$content = $request->content;
+	//$content = htmlspecialchars($request->content);
 	$response['content'] = <<<HTML
 <pre>{$content}</pre>
 HTML;
@@ -87,9 +87,6 @@ function doEdit($request) {
 <form action="{$request->path}/{$request->page}" method="post">
 	<fieldset>
 		<legend>Editing</legend>
-		<label for="slug">Page name:</label><br>	
-		<input type="text" name="slug" id="slug" size="78" value="{$request->page}"><br>
-		
 		<label for="text">Content:</label><br>	
 		<textarea cols="78" rows="20" name="text" id="text">{$request->content}</textarea>
 		<br>
@@ -127,9 +124,6 @@ HTML;
 <form action="{$request->path}/{$request->page}" method="post">
 	<fieldset>
 		<legend>Editing</legend>
-		<label for="slug">Page name:</label><br>	
-		<input type="text" name="slug" id="slug" size="78" value="{$request->post->slug}"><br>
-		
 		<label for="text">Content:</label><br>	
 		<textarea cols="78" rows="20" name="text" id="text">{$request->post->text}</textarea>
 		<br>
@@ -207,7 +201,6 @@ function getRequest($docIndex) {
 			$request->action = 'save';
 		}
 		
-		$request->post->slug    = slugify($_POST['slug']);
 		$request->post->text    = $_POST['text'];
 		$request->post->updated = $_POST['updated'];
 	} elseif ($_SERVER['REQUEST_METHOD']=='GET') {
