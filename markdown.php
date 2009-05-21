@@ -600,17 +600,22 @@ class Markdown_Parser {
 			$url = $this->urls[$link_id];
 			$url = $this->encodeAttribute($url);
 			
-			$isNewPage = false;
+			$link_text  = $this->runSpanGamut($link_text);
+			$title = '';
 			
-			$result = "<a href=\"$url\"";
 			if ( isset( $this->titles[$link_id] ) ) {
 				$title = $this->titles[$link_id];
 				$title = $this->encodeAttribute($title);
-				$result .=  " title=\"$title\"";
+				$title .=  " title=\"$title\"";
 			}
-		
-			$link_text = $this->runSpanGamut($link_text);
-			$result .= ">$link_text</a>";
+
+			$isNewPage  = true;
+			
+			if ($isNewPage) {
+				$result = "[{$link_text}]<a href=\"{$url}\"{$title}>?</a>";
+			} else {
+				$result = "<a href=\"{$url}\"{$title}>{$link_text}</a>";
+			}
 			$result = $this->hashPart($result);
 		}
 		else {
@@ -632,6 +637,7 @@ class Markdown_Parser {
 			$title = " title=\"{$title}\"";
 		}
 		
+		// TODO: Callback to determine whether URL is new page
 		$isNewPage = false;
 
 		if ($isNewPage) {
