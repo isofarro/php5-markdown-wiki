@@ -653,7 +653,7 @@ class Markdown_Parser {
 		
 		// TODO: Callback to determine whether URL is new page
 		$isNewPage = false;
-		if ($this->linkCallback && is_callable($this->linkCallback)) {
+		if ($this->linkCallback) {
 			$fn = $this->linkCallback;
 			$result = $fn($url);
 			$isNewPage = $result[0];

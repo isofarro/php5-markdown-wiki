@@ -253,19 +253,23 @@ function slugify($text) {
 }
 
 function isMarkdownFile($link) {
-	return true;
+	global $docDir;
+	//echo "{$docDir}{$link}.text<br>";
+	return file_exists("{$docDir}{$link}.text");
 }
 
 function wikilink($link) {
+	global $docIndex;
+
 	$isNew = false;
 	$wikiUrl = $link;
 	
-	if (preg_match('/^[a-z0-9]+(\/[a-z0-9]+)*$/', $link)) {
-		$wikiUrl = "/markdown.php/{$link}";
+	if (preg_match('/^\/?([a-z0-9-]+(\/[a-z0-9-]+)*)$/', $link, $matches)) {
+		$wikiUrl = "/markdown.php/{$matches[1]}";
 		$isNew = !isMarkdownFile($link);		
-	} elseif (preg_match('/^\/[a-z0-9]*(\/[a-z0-9]+)*$/', $link)) {
-		$wikiUrl = "/markdown.php{$link}";
-		$isNew = !isMarkdownFile($link);		
+	} elseif ($link=='/') {
+		$wikiUrl = "/markdown.php/{$docIndex}";
+		$isNew = !isMarkdownFile($docIndex);
 	}
 
 	return array($isNew, $wikiUrl);
