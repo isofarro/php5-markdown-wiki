@@ -609,7 +609,8 @@ class Markdown_Parser {
 				$title .=  " title=\"$title\"";
 			}
 
-			$isNewPage  = true;
+			// TODO: Replace with a callback facility
+			$isNewPage  = false;
 			
 			if ($isNewPage) {
 				$result = "[{$link_text}]<a href=\"{$url}\"{$title}>?</a>";
