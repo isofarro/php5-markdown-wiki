@@ -40,7 +40,7 @@ define( 'MARKDOWN_VERSION',  "1.0.1m" ); # Sat 21 Jun 2008
 
 @define( 'MARKDOWN_PARSER_CLASS',  'Markdown_Parser' );
 
-function Markdown($text) {
+function Markdown($text, $link_callback=false) {
 #
 # Initialize the parser and return the result of its transform method.
 #
@@ -49,6 +49,9 @@ function Markdown($text) {
 	if (!isset($parser)) {
 		$parser_class = MARKDOWN_PARSER_CLASS;
 		$parser = new $parser_class;
+		if ($link_callback!==false) {
+			$parser->setLinkCallback($link_callback);
+		}
 	}
 
 	# Transform text using parser.
@@ -86,6 +89,8 @@ class Markdown_Parser {
 	var $predef_urls = array();
 	var $predef_titles = array();
 
+	# Callback function for overriding link handling
+	var $linkCallback;
 
 	function Markdown_Parser() {
 	#
@@ -110,6 +115,14 @@ class Markdown_Parser {
 		asort($this->span_gamut);
 	}
 
+	function setLinkCallback($callback) {
+		if (is_callable($callback)) {
+			//echo "<li>Callable function: {$callback}</li>";
+			$this->linkCallback = $callback;
+		} else {
+			//echo "<li>Not callable: {$callback}</li>";
+		}
+	}
 
 	# Internal hashes used during transformation.
 	var $urls = array();
@@ -640,6 +653,12 @@ class Markdown_Parser {
 		
 		// TODO: Callback to determine whether URL is new page
 		$isNewPage = false;
+		if ($this->linkCallback && is_callable($this->linkCallback)) {
+			$fn = $this->linkCallback;
+			$result = $fn($url);
+			$isNewPage = $result[0];
+			$url = $result[1];
+		}
 
 		if ($isNewPage) {
 			$result = "[{$link_text}]<a href=\"{$url}\"{$title}>?</a>";

@@ -65,7 +65,7 @@ function doDisplay($request) {
 	$response = array('request'=>$request);
 
 	$response['title']   = "Displaying: {$request->page}";
-	$response['content'] = Markdown($request->content);
+	$response['content'] = Markdown($request->content, 'wikilink');
 
 	$response['footer'] = <<<HTML
 <ul>
@@ -113,7 +113,7 @@ HTML;
 		$msg = "<ul>\n{$msg}</ul>";
 	}
 	$response['messages'] = $msg;
-	$content = Markdown($request->post->text);
+	$content = Markdown($request->post->text, 'wikilink');
 	$response['title']   = "Preview: {$request->page}";
 	$response['content'] = <<<HTML
 <h2>Preview: {$request->page}</h2>
@@ -250,6 +250,25 @@ function slugify($text) {
 		), $text
 	);
 	return $text;
+}
+
+function isMarkdownFile($link) {
+	return true;
+}
+
+function wikilink($link) {
+	$isNew = false;
+	$wikiUrl = $link;
+	
+	if (preg_match('/^[a-z0-9]+(\/[a-z0-9]+)*$/', $link)) {
+		$wikiUrl = "/markdown.php/{$link}";
+		$isNew = !isMarkdownFile($link);		
+	} elseif (preg_match('/^\/[a-z0-9]*(\/[a-z0-9]+)*$/', $link)) {
+		$wikiUrl = "/markdown.php{$link}";
+		$isNew = !isMarkdownFile($link);		
+	}
+
+	return array($isNew, $wikiUrl);
 }
 
 ?>
