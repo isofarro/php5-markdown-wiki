@@ -26,6 +26,7 @@ if (file_exists($request->filename)) {
 } else {
 	$request->content = '';
 	$request->updated = 0;
+	$request->action  = 'edit';
 }
 
 // If content doesn't exist go into editing mode.
@@ -57,7 +58,7 @@ switch($request->action) {
 renderPage($response);
 
 
-//echo '<pre>'; print_r($request); echo '</pre>';
+echo '<pre>'; print_r($request); echo '</pre>';
 //phpinfo();
 
 function doDisplay($request) {
