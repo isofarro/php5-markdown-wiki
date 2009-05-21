@@ -600,6 +600,8 @@ class Markdown_Parser {
 			$url = $this->urls[$link_id];
 			$url = $this->encodeAttribute($url);
 			
+			$isNewPage = false;
+			
 			$result = "<a href=\"$url\"";
 			if ( isset( $this->titles[$link_id] ) ) {
 				$title = $this->titles[$link_id];
@@ -622,16 +624,21 @@ class Markdown_Parser {
 		$url			=  $matches[3] == '' ? $matches[4] : $matches[3];
 		$title			=& $matches[7];
 
-		$url = $this->encodeAttribute($url);
+		$url       = $this->encodeAttribute($url);
+		$link_text = $this->runSpanGamut($link_text);
 
-		$result = "<a href=\"$url\"";
 		if (isset($title)) {
 			$title = $this->encodeAttribute($title);
-			$result .=  " title=\"$title\"";
+			$title = " title=\"{$title}\"";
 		}
 		
-		$link_text = $this->runSpanGamut($link_text);
-		$result .= ">$link_text</a>";
+		$isNewPage = false;
+
+		if ($isNewPage) {
+			$result = "[{$link_text}]<a href=\"{$url}\"{$title}>?</a>";
+		} else {
+			$result = "<a href=\"{$url}\"{$title}>{$link_text}</a>";
+		}
 
 		return $this->hashPart($result);
 	}
