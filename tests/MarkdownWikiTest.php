@@ -14,7 +14,6 @@ class MarkdownWikiTest extends PHPUnit_Framework_TestCase {
 	}
 	
 	
-/****
 
 	public function testRequestReturnsAction() {
 		$request = array(
@@ -41,8 +40,6 @@ class MarkdownWikiTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals('GET', $action->method);
 
 	}
-****/
-
 	
 	public function testDefaultPageRequestAction() {
 		$request = array(
