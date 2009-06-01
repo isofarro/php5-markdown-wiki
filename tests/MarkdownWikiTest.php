@@ -6,7 +6,8 @@ class MarkdownWikiTest extends PHPUnit_Framework_TestCase {
 	var $wiki;
 	var $config = array(
 		'docDir'      => '/tmp/',
-		'defaultPage' => 'TestDefaultPage'
+		'defaultPage' => 'TestDefaultPage',
+		'newPageText' => 'This is a new test page'
 	);
 	
 	public function setUp() {
@@ -84,7 +85,6 @@ class MarkdownWikiTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals('POST', $action->method);
 		$this->assertEquals('save', $action->action);
 		$this->assertEquals('This is a one line message', $action->post->text);
-		//print_r($action);
 	}
 
 	public function testPreviewPostRequestAction() {
@@ -102,9 +102,18 @@ class MarkdownWikiTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals('POST', $action->method);
 		$this->assertEquals('preview', $action->action);
 		$this->assertEquals('This is a one altered line message', $action->post->text);
-		//print_r($action);
 	}
 
+	public function testModelReturnsDataObject() {
+		$action = (object) NULL;
+		$action->page = 'index';
+		
+		$model = $this->wiki->getModelData($action);
+		$this->assertNotNull($model);
+		$this->assertEquals($this->config['docDir'].'index.text', $model->file);
+		$this->assertEquals($this->config['newPageText'], $model->content);
+		//print_r($model);
+	}
 }
 
 

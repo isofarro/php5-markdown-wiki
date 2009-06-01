@@ -1,7 +1,14 @@
 <?php
 
 class MarkdownWiki {
-	protected $config;
+	// Wiki default configuration. All overridable
+	protected $config = array(
+		'docDir'      => '/tmp/',
+		'defaultPage' => 'index',
+		'newPageText' => 'Start editing your new page'
+	);
+	
+	// An instance of the Markdown parser
 	protected $parser;
 
 	public function __construct($config=false) {
@@ -20,14 +27,23 @@ class MarkdownWiki {
 	}
 	
 	public function setConfig($config) {
-		$this->config = $config;
+		$this->config = array_merge($this->config, $config);
 	}
 
 	public function handleRequest($request=false, $server=false) {
-		$action = $this->parseRequest($request, $server);
-		
+		$action        = $this->parseRequest($request, $server);
+		$action->model = $this->getModelData($action);
 	}
 	
+	
+	public function getModelData($action) {
+		$data = (object) NULL;
+		
+		$data->file    = $this->getFilename($action->page);
+		$data->content = $this->getContent($data->file);
+		
+		return $data;
+	}
 	
 	public function parseRequest($request=false, $server=false) {
 		$action = (object) NULL;
@@ -47,6 +63,17 @@ class MarkdownWiki {
 		}		
 
 		return $action;
+	}
+	
+	protected function getFilename($page) {
+		return "{$this->config['docDir']}{$page}.text";
+	}
+	
+	protected function getContent($filename) {
+		if (file_exists($filename)) {
+			return file_get_contents($filename);
+		}
+		return $this->config['newPageText'];
 	}
 	
 	protected function getMethod($request, $server) {
@@ -93,6 +120,9 @@ class MarkdownWiki {
 		} elseif (!empty($server['PATH_INFO'])) {
 			return 'display';
 		}
+		
+		// TODO: handle version history etc.
+		
 		return 'UNKNOWN';
 	}
 	
