@@ -1,278 +1,117 @@
 <?php
-$baseDir  = dirname(__file__);
-$docDir   = $baseDir . '/pages/';
-$docIndex = 'index';
 
-require_once $baseDir . '/markdown.php';
+class MarkdownWiki {
+	protected $config;
+	protected $parser;
 
-//echo "Index.php: {$docDir}\n";
-//echo "BaseDir: {$baseDir}\n";
-
-// Parsing the request
-$request = getRequest($docIndex);
-$request->filename = "{$docDir}{$request->page}.text";
-
-if (file_exists($request->filename)) {
-	$request->content = file_get_contents($request->filename);
-	$request->updated = filectime($request->filename);
-
-	if (!empty($request->post)) {
-		if ($request->updated > $request->post->updated) {
-			$request->messages[] =
-				"Editing conflict: The page you are editing has been updated by someone else.";
-			$request->action = 'preview';
+	public function __construct($config=false) {
+		$this->initWiki();
+		if ($config) {
+			$this->setConfig($config);
 		}
 	}
-} else {
-	$request->content = '';
-	$request->updated = 0;
-	$request->action  = 'edit';
-}
+	
+	protected function initWiki() {
+		$baseDir = dirname(__FILE__) . '/';
 
-// If content doesn't exist go into editing mode.
-if (is_null($request->content)) {
-	$request->action = 'edit';
-}
+		// Including the markdown parser
+		//echo "BaseDir: {$baseDir}\n";
+		require_once $baseDir . 'markdown.php';
+	}
+	
+	public function setConfig($config) {
+		$this->config = $config;
+	}
 
-switch($request->action) {
-	case 'display':
-		$response = doDisplay($request);
-		break;
-	case 'edit':
-		$response = doEdit($request);
-		break;
-	case 'save':
-		$response = doSave($request);
-		break;
-	case 'preview':
-		$response = doPreview($request);
-		break;
-	case 'history':
-	case 'admin':
-	case 'browse':
-	default:
-		echo "<h3>Action: {$request->action}</h3>";
-		break;
-}
+	public function handleRequest($request=false, $server=false) {
+		$action = $this->parseRequest($request, $server);
+		
+	}
+	
+	
+	public function parseRequest($request=false, $server=false) {
+		$action = (object) NULL;
 
-renderPage($response);
+		if (!$request) { $request = $_REQUEST; }
+		if (!$server)  { $server  = $_SERVER;  }
+		
+		//echo "Request: "; print_r($request);
+		//echo "Server : "; print_r($server);
+		
+		$action->method = $this->getMethod($request, $server);
+		$action->page   = $this->getPage($request, $server);
+		$action->action = $this->getAction($request, $server);
 
+		if ($action->method=='POST') {
+			$action->post = $this->getPostDetails($request, $server);
+		}		
 
-echo '<pre>'; print_r($request); echo '</pre>';
-//phpinfo();
-
-function doDisplay($request) {
-	$response = array('request'=>$request);
-
-	$response['title']   = "Displaying: {$request->page}";
-	$response['content'] = Markdown($request->content, 'wikilink');
-
-	$response['footer'] = <<<HTML
-<ul>
-	<li><a href="{$request->path}?action=edit&amp;id={$request->page}">Edit</a></li>
-</ul>
-HTML;
-
-	return $response;
-}
-
-function doEdit($request) {
-	$response = array('request'=>$request);
-
-	$response['title']   = "Editing: {$request->page}";
-	$response['content'] = <<<HTML
-<form action="{$request->path}/{$request->page}" method="post">
-	<fieldset>
-		<legend>Editing</legend>
-		<label for="text">Content:</label><br>	
-		<textarea cols="78" rows="20" name="text" id="text">{$request->content}</textarea>
-		<br>
-
-		<input type="submit" name="preview" value="Preview">
-		<input type="submit" name="save" value="Save">
-		<input type="hidden" name="updated" value="{$request->updated}">
-	</fieldset>
-</form>
-HTML;
-	$response['footer'] = '';
-
-	return $response;
-}
-
-
-function doPreview($request) {
-	$response = array('request'=>$request);
-
-	$msg = '';
-	if ($request->messages) {
-		foreach($request->messages as $message) {
-			$msg .= <<<HTML
-<li>{$message}</li>
-HTML;
+		return $action;
+	}
+	
+	protected function getMethod($request, $server) {
+		if (!empty($server['REQUEST_METHOD'])) {
+			return $server['REQUEST_METHOD'];
 		}
-		$msg = "<ul>\n{$msg}</ul>";
+		return 'UNKNOWN';
 	}
-	$response['messages'] = $msg;
-	$content = Markdown($request->post->text, 'wikilink');
-	$response['title']   = "Preview: {$request->page}";
-	$response['content'] = <<<HTML
-<h2>Preview: {$request->page}</h2>
-{$response['messages']}
-{$content}
-<form action="{$request->path}/{$request->page}" method="post">
-	<fieldset>
-		<legend>Editing</legend>
-		<label for="text">Content:</label><br>	
-		<textarea cols="78" rows="20" name="text" id="text">{$request->post->text}</textarea>
-		<br>
+	
+	protected function getPage($request, $server) {
+		$page = '';
+		
+		// Determine the page name
+		if (!empty($server['PATH_INFO'])) {
+			//echo "Path info detected\n";
+			// If we are using PATH_INFO then that's the page name
+			$page = substr($server['PATH_INFO'], 1);
+			
+		} elseif (!empty($request['id'])) {
+			$page = $request['id'];
+			
+		} else {
+			// TODO: Keep checking
+			echo "WARN: Could not find a pagename\n";
+		}
 
-		<input type="submit" name="preview" value="Preview">
-		<input type="submit" name="save" value="Save">
-		<input type="hidden" name="updated" value="{$request->post->updated}">
-	</fieldset>
-</form>
-HTML;
-	$response['footer'] = '';
-
-	return $response;
-}
-
-
-function doSave($request) {
-	if (file_exists($request->filename) && 
-		$request->updated > $request->post->updated) {
-		$request->message[] = "Editing conflict";
-		return doPreview($request);
-	}
-	// TODO: check the directory exists
-	$directory = dirname($request->filename);
-	if (!file_exists($directory)) {
-		mkdir($directory, 0777, true);		
-	} elseif (!is_dir($directory)) {
-		$request->message[] =
-			"Cannot create {$request->page}";
-	}
-	file_put_contents(
-		$request->filename,
-		$request->post->text
-	);
-	$request->content = $request->post->text;
-	return doDisplay($request);
-}
-
-
-function renderPage($response) {
-	echo <<<PAGE
-<html lang="en-GB">
-<head>
-	<title>{$response['title']}</title>
-</head>
-<body>
-	<div id="page">
-		<div id="head"></div>
-		<div id="content">
-{$response['content']}
-		</div>	
-		<div id="related"></div>	
-		<div id="foot">
-{$response['footer']}
-		</div>	
-	</div>
-</body>
-</html>
-PAGE;
-}
-
-
-
-
-function getRequest($docIndex) {
-	$request = (object) NULL;
-	$request->action = 'display';
-
-	if (!empty($_SERVER['PATH_INFO'])) {
-		$request->page   = substr($_SERVER['PATH_INFO'], 1);
-	}
-
-	if ($_SERVER['REQUEST_METHOD']=='POST') {
-		$request->post = (object) NULL;
-		$request->action = 'preview';
-
-		//print_r($_POST);
-		if (!empty($_POST['save'])) {
-			$request->action = 'save';
+		// Check whether a default Page is being requested
+		if ($page=='' || preg_match('/\/$/', $page)) {
+			$page .= $this->config['defaultPage'];
 		}
 		
-		$request->post->text    = $_POST['text'];
-		$request->post->updated = $_POST['updated'];
-	} elseif ($_SERVER['REQUEST_METHOD']=='GET') {
+		return $page;
+	}
 	
-		if (!empty($_GET['id'])) {
-			$request->page   = $_GET['id'];
-			$request->action = $_GET['action'];
-		} elseif (!empty($_SERVER['PATH_INFO'])) {
-			$request->page   = substr($_SERVER['PATH_INFO'], 1);
-			$request->action = 'display';
-		} else {
-			$request->page   = '';
-			$request->action = 'display';
+	protected function getAction($request, $server) {
+		if ($server['REQUEST_METHOD']=='POST') {
+			if (!empty($request['preview'])) {
+				return 'preview';
+			} elseif (!empty($request['save'])) {
+				return 'save';
+			}
+		} elseif (!empty($request['action'])) {
+			return $request['action'];
+		} elseif (!empty($server['PATH_INFO'])) {
+			return 'display';
 		}
-	
-		if ($request->page=='') {
-			$request->page = $docIndex;
-		}
+		return 'UNKNOWN';
 	}
 	
-	if ($request->page[strlen($request->page)-1]=='/') {
-		$request->page .= $docIndex;
+	protected function getPostDetails($request, $server) {
+		$post = (object) NULL;
+		$post->text    = $request['text'];
+		$post->updated = $request['updated'];
+		return $post;
 	}
 
-	$request->filename = NULL;
-	$request->content  = NULL;
-	$request->path     = '/markdown.php';
-	$request->messages = array();
-
-	return $request;
 }
 
-function slugify($text) {
-	$text = strtolower(trim($text));
-	$text = preg_replace(
-		array(
-			'/([\'\"]+)/',
-			'/([^a-z0-9\/]+)/',
-			'/(--+)/'
-		),
-		array(
-			'',
-			'-',
-			'-'
-		), $text
-	);
-	return $text;
-}
 
-function isMarkdownFile($link) {
-	global $docDir;
-	//echo "{$docDir}{$link}.text<br>";
-	return file_exists("{$docDir}{$link}.text");
-}
 
-function wikilink($link) {
-	global $docIndex;
-
-	$isNew = false;
-	$wikiUrl = $link;
-	
-	if (preg_match('/^\/?([a-z0-9-]+(\/[a-z0-9-]+)*)$/', $link, $matches)) {
-		$wikiUrl = "/markdown.php/{$matches[1]}";
-		$isNew = !isMarkdownFile($link);		
-	} elseif ($link=='/') {
-		$wikiUrl = "/markdown.php/{$docIndex}";
-		$isNew = !isMarkdownFile($docIndex);
-	}
-
-	return array($isNew, $wikiUrl);
+if ($_REQUEST) {
+	# Dealing with a web request
+	$wiki = new MarkdownWiki($config);
+	$wiki->handleRequest();
+	//print_r($wiki);
 }
 
 ?>
