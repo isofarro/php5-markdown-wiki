@@ -122,14 +122,17 @@ class MarkdownWikiTest extends PHPUnit_Framework_TestCase {
 
 		$response = $this->wiki->doAction($action);
 		$this->assertNotNull($response);
-		$this->assertNotNull($response->messages);
-		$this->assertContains('Action UNKNOWN not implemented.', $response->messages);
+		$this->assertNotNull($response['messages']);
+		$this->assertContains('Action UNKNOWN not implemented.', $response['messages']);
 	}
 
 	public function testDoDisplayAction() {
 		$action         = (object) NULL;
 		$action->page   = 'index';
-		$action->action = 'display';		
+		$action->action = 'display';
+		$action->path   = '/markdown.php';
+		$action->model  = (object) NULL;
+		$action->model->content = 'Hello World!';
 
 		$response = $this->wiki->doAction($action);
 		print_r($response);

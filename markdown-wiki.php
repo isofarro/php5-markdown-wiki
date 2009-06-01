@@ -49,18 +49,38 @@ class MarkdownWiki {
 	}
 	
 	public function doAction($action) {
-		$response           = (object) NULL;
-		$response->messages = array();
 		
 		switch($action->action) {
 			case 'display':
-			
+				$response = $this->doDisplay($action);
 				break;
+			case 'edit':
+			case 'save':
+			case 'preview':
+			case 'history':
+			case 'admin':
+			case 'browse':
 			default:
-				$response->messages[] = 
-					"Action {$action->action} not implemented.";
+				$response = array( 
+					'messages' => array(
+						"Action {$action->action} not implemented."
+					)
+				);
 				break;
 		}
+
+		return $response;
+	}
+	
+	protected function doDisplay($action) {
+		$response = array();
+		
+		$response['title']   = "Displaying: {$action->page}";
+		$response['content'] = $this->renderHtml($action->model->content); 
+
+		$response['options'] = array(
+			'Edit' => "{$action->path}?action=edit&amp;id={$action->page}"
+		);
 
 		return $response;
 	}
@@ -89,11 +109,18 @@ class MarkdownWiki {
 		$action->page   = $this->getPage($request, $server);
 		$action->action = $this->getAction($request, $server);
 
+		// TODO: Figure out the actual path to the wiki
+		$action->path   = '/markdown.php';
+
 		if ($action->method=='POST') {
 			$action->post = $this->getPostDetails($request, $server);
 		}		
 
 		return $action;
+	}
+	
+	protected function renderHtml($markdown) {
+		return Markdown($markdown, 'wikilink');
 	}
 	
 	protected function getFilename($page) {
