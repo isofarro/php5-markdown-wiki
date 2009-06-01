@@ -114,6 +114,28 @@ class MarkdownWikiTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals($this->config['newPageText'], $model->content);
 		//print_r($model);
 	}
+	
+	public function testDoUnknownAction() {
+		$action         = (object) NULL;
+		$action->page   = 'index';
+		$action->action = 'UNKNOWN';		
+
+		$response = $this->wiki->doAction($action);
+		$this->assertNotNull($response);
+		$this->assertNotNull($response->messages);
+		$this->assertContains('Action UNKNOWN not implemented.', $response->messages);
+	}
+
+	public function testDoDisplayAction() {
+		$action         = (object) NULL;
+		$action->page   = 'index';
+		$action->action = 'display';		
+
+		$response = $this->wiki->doAction($action);
+		print_r($response);
+	}
+
+
 }
 
 

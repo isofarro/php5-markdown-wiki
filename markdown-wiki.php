@@ -31,8 +31,38 @@ class MarkdownWiki {
 	}
 
 	public function handleRequest($request=false, $server=false) {
-		$action        = $this->parseRequest($request, $server);
-		$action->model = $this->getModelData($action);
+		$action           = $this->parseRequest($request, $server);
+		$action->model    = $this->getModelData($action);
+		
+		// If this is a new file, switch to edit mode
+		if ($action->model->updated==0) {
+			$action->action = 'edit';
+		}		
+		
+		$action->response = $this->doAction($action);
+		$output           = $this->renderResponse($action);
+	}
+
+	public function renderResponse($action) {
+		$output = '';
+		return $output;
+	}
+	
+	public function doAction($action) {
+		$response           = (object) NULL;
+		$response->messages = array();
+		
+		switch($action->action) {
+			case 'display':
+			
+				break;
+			default:
+				$response->messages[] = 
+					"Action {$action->action} not implemented.";
+				break;
+		}
+
+		return $response;
 	}
 	
 	
@@ -41,6 +71,7 @@ class MarkdownWiki {
 		
 		$data->file    = $this->getFilename($action->page);
 		$data->content = $this->getContent($data->file);
+		$data->updated = $this->getLastUpdated($data->file);
 		
 		return $data;
 	}
@@ -74,6 +105,13 @@ class MarkdownWiki {
 			return file_get_contents($filename);
 		}
 		return $this->config['newPageText'];
+	}
+	
+	protected function getLastUpdated($filename) {
+		if (file_exists($filename)) {
+			return filectime($filename);
+		}
+		return 0;
 	}
 	
 	protected function getMethod($request, $server) {
