@@ -16,11 +16,10 @@ class MarkdownWikiTest extends PHPUnit_Framework_TestCase {
 	
 
 	public function testRequestReturnsAction() {
-		$request = array(
-		
-		);
+		$request = array();
 		$server  = array(
-			'REQUEST_METHOD' => 'GET'
+			'REQUEST_METHOD' => 'GET',
+			'PATH_INFO'      => '/TestPageName'
 		);
 		
 		$action = $this->wiki->parseRequest($request, $server);
@@ -41,10 +40,8 @@ class MarkdownWikiTest extends PHPUnit_Framework_TestCase {
 
 	}
 	
-	public function testDefaultPageRequestAction() {
-		$request = array(
-		
-		);
+	public function testDefaultPathInfoPageRequestAction() {
+		$request = array();
 		$server  = array(
 			'REQUEST_METHOD' => 'GET',
 			'PATH_INFO'      => '/'
@@ -58,10 +55,8 @@ class MarkdownWikiTest extends PHPUnit_Framework_TestCase {
 	}
 
 
-	public function testDefaultDirPageRequestAction() {
-		$request = array(
-		
-		);
+	public function testDefaultPathInfoDirPageRequestAction() {
+		$request = array();
 		$server  = array(
 			'REQUEST_METHOD' => 'GET',
 			'PATH_INFO'      => '/Directory/'
@@ -72,6 +67,42 @@ class MarkdownWikiTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals('GET', $action->method);
 		$this->assertEquals('display', $action->action);
 
+	}
+	
+	public function testSavePostRequestAction() {
+		$request = array(
+			'save'    => 'Save this page',
+			'text'    => 'This is a one line message',
+			'updated' => time()
+		);
+		$server  = array(
+			'REQUEST_METHOD' => 'POST',
+			'PATH_INFO'      => '/index'
+		);
+
+		$action = $this->wiki->parseRequest($request, $server);
+		$this->assertEquals('POST', $action->method);
+		$this->assertEquals('save', $action->action);
+		$this->assertEquals('This is a one line message', $action->post->text);
+		//print_r($action);
+	}
+
+	public function testPreviewPostRequestAction() {
+		$request = array(
+			'preview' => 'Preview my changes',
+			'text'    => 'This is a one altered line message',
+			'updated' => time()
+		);
+		$server  = array(
+			'REQUEST_METHOD' => 'POST',
+			'PATH_INFO'      => '/index'
+		);
+
+		$action = $this->wiki->parseRequest($request, $server);
+		$this->assertEquals('POST', $action->method);
+		$this->assertEquals('preview', $action->action);
+		$this->assertEquals('This is a one altered line message', $action->post->text);
+		//print_r($action);
 	}
 
 }
