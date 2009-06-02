@@ -42,49 +42,7 @@ class MarkdownWiki {
 		$action->response = $this->doAction($action);
 		$output           = $this->renderResponse($action->response);
 
-		//echo '<pre>'; print_r($action); echo '</pre>';
-	}
-
-	public function renderResponse($response) {
-		if (!empty($this->config['layout'])) {
-			// TODO: Use a custom template
-		} else {
-			$footer = array();
-			
-			if (!empty($response['options'])) {
-				$footer[] = '<ul>';
-				foreach($response['options'] as $label=>$link) {
-					$footer[] = <<<HTML
-<li><a href="{$link}">{$label}</a></li>
-HTML;
-				}
-				$footer[] = '</ul>';
-			}
-			$response['footer'] = implode("\n", $footer);
-
-			echo <<<PAGE
-<html lang="en-GB">
-<head>
-	<title>{$response['title']}</title>
-</head>
-<body>
-	<div id="page">
-		<div id="head"></div>
-		<div id="content">
-{$response['content']}
-		</div>	
-		<div id="related">
-{$response['related']}		
-		</div>	
-		<div id="foot">
-{$response['footer']}
-		</div>	
-	</div>
-</body>
-</html>
-PAGE;
-
-		}
+		echo '<pre>'; print_r($action); echo '</pre>';
 	}
 	
 	public function doAction($action) {
@@ -95,6 +53,8 @@ PAGE;
 				$response = $this->doDisplay($action);
 				break;
 			case 'edit':
+				$response = $this->doEdit($action);
+				break;
 			case 'save':
 			case 'preview':
 			case 'history':
@@ -114,19 +74,32 @@ PAGE;
 	}
 	
 	protected function doDisplay($action) {
-		$response = array();
-		
-		$response['title']   = "Displaying: {$action->page}";
-		$response['content'] = $this->renderHtml($action->model->content); 
-		$response['related'] = ''; 
-
-		$response['options'] = array(
-			'Edit' => "{$action->path}?action=edit&amp;id={$action->page}"
+		$response = array(
+			'title'    => "Displaying: {$action->page}",
+			'content'  => $this->renderDocument($action),
+			'editForm' => '',
+			'options'  => array(
+				'Edit' => "{$action->base}{$action->page}?action=edit&amp;id={$action->page}"
+			),
+			'related'  => ''
 		);
-
+		
 		return $response;
 	}
 	
+	protected function doEdit($action) {
+		$response = array(
+			'title'    => "Editing: {$action->page}",
+			'content'  => '',
+			'editForm' => $this->renderEditForm($action),
+			'options'  => array(
+				'Cancel' => "{$action->base}{$action->page}"
+			),
+			'related'  => ''
+		);
+		
+		return $response;
+	}
 	
 	public function getModelData($action) {
 		$data = (object) NULL;
@@ -150,19 +123,13 @@ PAGE;
 		$action->method = $this->getMethod($request, $server);
 		$action->page   = $this->getPage($request, $server);
 		$action->action = $this->getAction($request, $server);
-
-		// TODO: Figure out the actual path to the wiki
-		$action->path   = '/index-sample.php/';
+		$action->base   = $this->getBaseUrl($request, $server);
 
 		if ($action->method=='POST') {
 			$action->post = $this->getPostDetails($request, $server);
 		}		
 
 		return $action;
-	}
-	
-	protected function renderHtml($markdown) {
-		return Markdown($markdown, 'wikilink');
 	}
 	
 	protected function getFilename($page) {
@@ -233,12 +200,132 @@ PAGE;
 		return 'UNKNOWN';
 	}
 	
+	protected function getBaseUrl($request, $server) {
+		if (!empty($this->config['baseUrl'])) {
+			return $this->config['baseUrl'];
+		}
+		/**
+			PATH_INFO $_SERVER keys
+    [SERVER_NAME] => localhost
+    [DOCUMENT_ROOT] => /home/user/sites/default/htdocs
+    [SCRIPT_FILENAME] => /home/user/sites/default/htdocs/index-sample.php
+    [REQUEST_METHOD] => GET
+    [QUERY_STRING] => 
+    [REQUEST_URI] => /index-sample.php
+    [SCRIPT_NAME] => /index-sample.php
+    [PHP_SELF] => /index-sample.php
+		**/
+
+		$scriptName = $server['SCRIPT_NAME'];
+		$requestUrl = $server['REQUEST_URI'];
+		$phpSelf    = $server['PHP_SELF'];
+		
+		if ($requestUrl==$scriptName) {
+			// PATH_INFO based
+		} elseif(strpos($requestUrl, $scriptName)===0) {
+			// Query string based
+		} else {
+			// Maybe mod_rewrite based?
+			// Perhaps we need a config entry here
+		}
+	
+		return '/index-sample.php/'; // PATH-INFO base
+	}
+	
 	protected function getPostDetails($request, $server) {
 		$post = (object) NULL;
 		$post->text    = $request['text'];
 		$post->updated = $request['updated'];
 		return $post;
 	}
+
+	/*********
+	
+		RESPONSE RENDERERS	
+	
+	*********/
+
+	public function renderResponse($response) {
+		if (!empty($this->config['layout'])) {
+			// TODO: Use a custom template
+		} else {
+			$footer = array();
+			
+			if (!empty($response['options'])) {
+				$footer[] = '<ul>';
+				foreach($response['options'] as $label=>$link) {
+					$footer[] = <<<HTML
+<li><a href="{$link}">{$label}</a></li>
+HTML;
+				}
+				$footer[] = '</ul>';
+			}
+			$response['footer'] = implode("\n", $footer);
+
+			echo <<<PAGE
+<html lang="en-GB">
+<head>
+	<title>{$response['title']}</title>
+</head>
+<body>
+	<div id="page">
+		<div id="head"></div>
+		<div id="content">
+{$response['content']}
+{$response['editForm']}
+		</div>	
+		<div id="related">
+{$response['related']}		
+		</div>	
+		<div id="foot">
+{$response['footer']}
+		</div>	
+	</div>
+</body>
+</html>
+PAGE;
+
+		}
+	}
+
+	protected function renderDocument($action) {
+		return Markdown($action->model->content, 'wikilink');
+	}
+
+	protected function renderPreviewDocument($action) {
+		return Markdown($action->post->text, 'wikilink');
+	}
+
+	protected function renderEditForm($action) {
+		if (!empty($action->post)) {
+			$form = array(
+				'raw'     => $action->post->text,
+				'updated' => $action->post->updated
+			);		
+		} else {
+			$form = array(
+				'raw'     => $action->model->content,
+				'updated' => $action->model->updated
+			);
+		}
+
+		return <<<HTML
+<form action="{$action->base}{$action->page}" method="post">
+	<fieldset>
+		<legend>Editing</legend>
+		<label for="text">Content:</label><br>	
+		<textarea cols="78" rows="20" name="text" id="text">{$form['raw']}</textarea>
+		<br>
+
+		<input type="submit" name="preview" value="Preview">
+		<input type="submit" name="save" value="Save">
+		<input type="hidden" name="updated" value="{$form['updated']}">
+	</fieldset>
+</form>
+HTML;
+
+	}
+
 
 }
 
