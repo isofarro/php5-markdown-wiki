@@ -120,6 +120,7 @@ class MarkdownWiki {
 	}
 
 	protected function doSave($action) {
+		// TODO: Implement some sort of versioning
 		if (empty($action->model)) {
 			// This is a new file
 			echo "INFO: Saving a new file\n";
