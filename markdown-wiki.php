@@ -55,8 +55,10 @@ class MarkdownWiki {
 			case 'edit':
 				$response = $this->doEdit($action);
 				break;
-			case 'save':
 			case 'preview':
+				$response = $this->doPreview($action);
+				break;
+			case 'save':
 			case 'history':
 			case 'admin':
 			case 'browse':
@@ -101,6 +103,20 @@ class MarkdownWiki {
 		return $response;
 	}
 	
+	protected function doPreview($action) {
+		$response = array(
+			'title'    => "Editing: {$action->page}",
+			'content'  => $this->renderPreviewDocument($action),
+			'editForm' => $this->renderEditForm($action),
+			'options'  => array(
+				'Cancel' => "{$action->base}{$action->page}"
+			),
+			'related'  => ''
+		);
+		
+		return $response;
+	}
+
 	public function getModelData($action) {
 		$data = (object) NULL;
 		
