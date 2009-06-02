@@ -38,19 +38,59 @@ class MarkdownWiki {
 		if ($action->model->updated==0) {
 			$action->action = 'edit';
 		}		
-		
+
 		$action->response = $this->doAction($action);
-		$output           = $this->renderResponse($action);
+		$output           = $this->renderResponse($action->response);
+
+		//echo '<pre>'; print_r($action); echo '</pre>';
 	}
 
-	public function renderResponse($action) {
-		$output = '';
-		return $output;
+	public function renderResponse($response) {
+		if (!empty($this->config['layout'])) {
+			// TODO: Use a custom template
+		} else {
+			$footer = array();
+			
+			if (!empty($response['options'])) {
+				$footer[] = '<ul>';
+				foreach($response['options'] as $label=>$link) {
+					$footer[] = <<<HTML
+<li><a href="{$link}">{$label}</a></li>
+HTML;
+				}
+				$footer[] = '</ul>';
+			}
+			$response['footer'] = implode("\n", $footer);
+
+			echo <<<PAGE
+<html lang="en-GB">
+<head>
+	<title>{$response['title']}</title>
+</head>
+<body>
+	<div id="page">
+		<div id="head"></div>
+		<div id="content">
+{$response['content']}
+		</div>	
+		<div id="related">
+{$response['related']}		
+		</div>	
+		<div id="foot">
+{$response['footer']}
+		</div>	
+	</div>
+</body>
+</html>
+PAGE;
+
+		}
 	}
 	
 	public function doAction($action) {
 		
 		switch($action->action) {
+			case 'UNKNOWN': # Default to display
 			case 'display':
 				$response = $this->doDisplay($action);
 				break;
@@ -66,6 +106,7 @@ class MarkdownWiki {
 						"Action {$action->action} not implemented."
 					)
 				);
+				print_r($action);
 				break;
 		}
 
@@ -77,6 +118,7 @@ class MarkdownWiki {
 		
 		$response['title']   = "Displaying: {$action->page}";
 		$response['content'] = $this->renderHtml($action->model->content); 
+		$response['related'] = ''; 
 
 		$response['options'] = array(
 			'Edit' => "{$action->path}?action=edit&amp;id={$action->page}"
@@ -110,7 +152,7 @@ class MarkdownWiki {
 		$action->action = $this->getAction($request, $server);
 
 		// TODO: Figure out the actual path to the wiki
-		$action->path   = '/markdown.php';
+		$action->path   = '/index-sample.php/';
 
 		if ($action->method=='POST') {
 			$action->post = $this->getPostDetails($request, $server);
@@ -162,7 +204,7 @@ class MarkdownWiki {
 			
 		} else {
 			// TODO: Keep checking
-			echo "WARN: Could not find a pagename\n";
+			//echo "WARN: Could not find a pagename\n";
 		}
 
 		// Check whether a default Page is being requested
