@@ -59,6 +59,8 @@ class MarkdownWiki {
 				$response = $this->doPreview($action);
 				break;
 			case 'save':
+				$response = $this->doSave($action);
+				break;
 			case 'history':
 			case 'admin':
 			case 'browse':
@@ -117,7 +119,22 @@ class MarkdownWiki {
 		return $response;
 	}
 
-	public function getModelData($action) {
+	protected function doSave($action) {
+		if (empty($action->model)) {
+			// This is a new file
+			echo "INFO: Saving a new file\n";
+		} elseif ($action->model->updated==$action->post->updated) {
+			// Check there isn't an editing conflict
+			$action->model->content = $action->post->text;
+			$this->setModelData($action->model);
+		} else {
+			echo "WARN: Editing conflict!\n";
+		}
+		
+		return $this->doDisplay($action);
+	}
+
+	protected function getModelData($action) {
 		$data = (object) NULL;
 		
 		$data->file    = $this->getFilename($action->page);
@@ -125,6 +142,17 @@ class MarkdownWiki {
 		$data->updated = $this->getLastUpdated($data->file);
 		
 		return $data;
+	}
+	
+	protected function setModelData($model) {
+		$directory = dirname($model->file);
+		if (!file_exists($directory)) {
+			mkdir($directory, 0777, true);		
+		} elseif (!is_dir($directory)) {
+			echo "ERROR: Cannot create {$model->file}\n";
+		}
+
+		file_put_contents($model->file, $model->content);
 	}
 	
 	public function parseRequest($request=false, $server=false) {
