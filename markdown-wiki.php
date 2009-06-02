@@ -201,8 +201,7 @@ class MarkdownWiki {
 }
 
 
-
-if ($_REQUEST) {
+if (!empty($_SERVER['REQUEST_URI'])) {
 	# Dealing with a web request
 	$wiki = new MarkdownWiki($config);
 	$wiki->handleRequest();
