@@ -1,7 +1,7 @@
 <?php
 
 class MarkdownWiki {
-	// Wiki default configuration. All overridable
+	// Wiki default configuration. All overridableindex
 	protected $config = array(
 		'docDir'      => '/tmp/',
 		'defaultPage' => 'index',
@@ -35,14 +35,14 @@ class MarkdownWiki {
 		$action->model    = $this->getModelData($action);
 		
 		// If this is a new file, switch to edit mode
-		if ($action->model->updated==0) {
+		if ($action->model->updated==0 && $action->action=='display') {
 			$action->action = 'edit';
 		}		
 
 		$action->response = $this->doAction($action);
 		$output           = $this->renderResponse($action->response);
 
-		echo '<pre>'; print_r($action); echo '</pre>';
+		//echo '<pre>'; print_r($action); echo '</pre>';
 	}
 	
 	public function doAction($action) {
