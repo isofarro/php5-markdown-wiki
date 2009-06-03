@@ -10,6 +10,7 @@ class MarkdownWiki {
 	
 	// An instance of the Markdown parser
 	protected $parser;
+	protected $baseUrl;
 
 	public function __construct($config=false) {
 		$this->initWiki();
@@ -26,6 +27,28 @@ class MarkdownWiki {
 		require_once $baseDir . 'markdown.php';
 	}
 	
+	public function wikiLink($link) {
+		global $docIndex;
+
+		$isNew = false;
+		$wikiUrl = $link;
+		
+		if (preg_match('/^\/?([a-z0-9-]+(\/[a-z0-9-]+)*)$/', $link, $matches)) {
+			$wikiUrl = "{$this->baseUrl}{$matches[1]}";
+			$isNew = !$this->isMarkdownFile($link);
+		} elseif ($link=='/') {
+			$wikiUrl = "{$this->baseUrl}{$this->config['defaultPage']}";
+			$isNew = !$this->isMarkdownFile($this->config['defaultPage']);
+		}
+	
+		return array($isNew, $wikiUrl);
+	}
+
+	public function isMarkdownFile($link) {
+		//echo "{$docDir}{$link}.text<br>";
+		return file_exists("{$this->config['docDir']}{$link}.text");
+	}
+
 	public function setConfig($config) {
 		$this->config = array_merge($this->config, $config);
 	}
@@ -172,7 +195,10 @@ class MarkdownWiki {
 
 		if ($action->method=='POST') {
 			$action->post = $this->getPostDetails($request, $server);
-		}		
+		}
+		
+		// Take a copy of the action base for the wikiLink function
+		$this->baseUrl = $action->base;
 
 		return $action;
 	}
@@ -334,11 +360,17 @@ PAGE;
 	}
 
 	protected function renderDocument($action) {
-		return Markdown($action->model->content, 'wikilink');
+		return Markdown(
+			$action->model->content, 
+			array($this, 'wikiLink')
+		);
 	}
 
 	protected function renderPreviewDocument($action) {
-		return Markdown($action->post->text, 'wikilink');
+		return Markdown(
+			$action->post->text, 
+			array($this, 'wikiLink')
+		);
 	}
 
 	protected function renderEditForm($action) {
