@@ -11,7 +11,7 @@ class MarkdownWiki {
 	// An instance of the Markdown parser
 	protected $parser;
 	protected $baseUrl;
-
+	
 	public function __construct($config=false) {
 		$this->initWiki();
 		if ($config) {
@@ -67,6 +67,10 @@ class MarkdownWiki {
 
 		//echo '<pre>'; print_r($action); echo '</pre>';
 	}
+
+	##
+	## Methods handling each action
+	##
 	
 	public function doAction($action) {
 		
@@ -158,6 +162,10 @@ class MarkdownWiki {
 		return $this->doDisplay($action);
 	}
 
+	##
+	## Methods dealing with the model (plain old file system)
+	##
+
 	protected function getModelData($action) {
 		$data = (object) NULL;
 		
@@ -178,6 +186,10 @@ class MarkdownWiki {
 
 		file_put_contents($model->file, $model->content);
 	}
+
+	##
+	## Methods for parsing the incoming request
+	##
 	
 	public function parseRequest($request=false, $server=false) {
 		$action = (object) NULL;
