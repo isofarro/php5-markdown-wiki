@@ -15,23 +15,22 @@ So a link syntax of `[My page](myDir/myPage)` will be treated as a wiki link and
 To-do:
 ------
 
+* Specifying a stylesheet
 * Error message handling
 * Documentation of install
-* Specifying a stylesheet
 * Version control. Choice between git and self-versioning
-* Override rendering with templates
+* Override layout rendering with templates
 * Solve mod_rewrite baseUrl - maybe an extra config?
 * History and rollback
+* Improve test coverage of MarkdownWiki class
 * Tighter/more secure file-update/conflict checking
 * Documentation of layout templates / accessible data structures
-* Improve test coverage of MarkdownWiki class
 
 Wish list:
 ----------
 
 * REST-based API that deals with raw markdown
 * Figure out a better way of extending the base markdown class.
-  maybe extending the base class and overriding the required methods?
 * Authentication / login
 
 
