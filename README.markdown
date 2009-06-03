@@ -6,14 +6,14 @@ A simple wiki built around the standard PHP Markdown class.
 To-do:
 ------
 
-* Override rendering with templates
-* Specifying a stylesheet
 * Error message handling
-* Solve mod_rewrite baseUrl - maybe an extra config?
+* Documentation of install
+* Specifying a stylesheet
 * Version control. Choice between git and self-versioning
+* Override rendering with templates
+* Solve mod_rewrite baseUrl - maybe an extra config?
 * History and rollback
 * Tighter/more secure file-update/conflict checking
-* Documentation of install
 * Documentation of layout templates / accessible data structures
 * Improve test coverage of MarkdownWiki class
 

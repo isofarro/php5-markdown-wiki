@@ -5,7 +5,8 @@ class MarkdownWiki {
 	protected $config = array(
 		'docDir'      => '/tmp/',
 		'defaultPage' => 'index',
-		'newPageText' => 'Start editing your new page'
+		'newPageText' => 'Start editing your new page',
+		'markdownExt' => 'markdown'
 	);
 	
 	// An instance of the Markdown parser
@@ -45,8 +46,9 @@ class MarkdownWiki {
 	}
 
 	public function isMarkdownFile($link) {
-		//echo "{$docDir}{$link}.text<br>";
-		return file_exists("{$this->config['docDir']}{$link}.text");
+		$filename = "{$this->config['docDir']}{$link}.{$this->config['markdownExt']}";
+		//echo "{$filename}<br>";
+		return file_exists($filename);
 	}
 
 	public function setConfig($config) {
@@ -216,7 +218,7 @@ class MarkdownWiki {
 	}
 	
 	protected function getFilename($page) {
-		return "{$this->config['docDir']}{$page}.text";
+		return "{$this->config['docDir']}{$page}.{$this->config['markdownExt']}";
 	}
 	
 	protected function getContent($filename) {
