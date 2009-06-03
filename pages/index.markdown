@@ -1,16 +1,37 @@
 PHP5 Markdown
 =============
 
-An editable website using Markdown syntax.
-An extra bit of text. And another useful bit of text.
+A simple wiki built around the standard PHP Markdown class.
 
-A second paragraph to spell out *emphasised* text as well as **strongly emphasised** text. Sometimes it's useful to emphasise text using _underscores_ and __double underscores__ for just the right occasion.
+Wiki links
+----------
 
-A second-level header
----------------------
+Currently I've hacked the link handling methods in the markdown class so that relative paths are treated as wiki page references, but in all cases this relative path is treated as fixed from the wiki root. This hacking should probably be done by extending the Markdown class and overriding or wrapping the necessary methods.
 
-There's nothing more important than a decent header structure. The official [Markdown Syntax](syntax) is supported, and [New Wiki Pages](unknown-wiki-page), a [directoried page](index/newpage), and a [root page](/)
+So a link syntax of `[My page](myDir/myPage)` will be treated as a wiki link and linked to the page `{$wikibase}/myDir/myPage}`, so looking for a file called *myPage.markdown* in the directory *myDir* which is a sub-directory of the document directory.
 
+------
 
+To-do:
+------
+
+* Error message handling
+* Documentation of install
+* Specifying a stylesheet
+* Version control. Choice between git and self-versioning
+* Override rendering with templates
+* Solve mod_rewrite baseUrl - maybe an extra config?
+* History and rollback
+* Tighter/more secure file-update/conflict checking
+* Documentation of layout templates / accessible data structures
+* Improve test coverage of MarkdownWiki class
+
+Wish list:
+----------
+
+* REST-based API that deals with raw markdown
+* Figure out a better way of extending the base markdown class.
+  maybe extending the base class and overriding the required methods?
+* Authentication / login
 
 

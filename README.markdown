@@ -3,6 +3,15 @@ PHP5 Markdown
 
 A simple wiki built around the standard PHP Markdown class.
 
+Wiki links
+----------
+
+Currently I've hacked the link handling methods in the markdown class so that relative paths are treated as wiki page references, but in all cases this relative path is treated as fixed from the wiki root. This hacking should probably be done by extending the Markdown class and overriding or wrapping the necessary methods.
+
+So a link syntax of `[My page](myDir/myPage)` will be treated as a wiki link and linked to the page `{$wikibase}/myDir/myPage}`, so looking for a file called *myPage.markdown* in the directory *myDir* which is a sub-directory of the document directory.
+
+------
+
 To-do:
 ------
 
