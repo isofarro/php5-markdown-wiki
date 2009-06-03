@@ -15,23 +15,38 @@ So a link syntax of `[My page](myDir/myPage)` will be treated as a wiki link and
 To-do:
 ------
 
+* Specifying a stylesheet
+* Extract topmost header in document for use as a title
 * Error message handling
 * Documentation of install
-* Specifying a stylesheet
 * Version control. Choice between git and self-versioning
-* Override rendering with templates
+* Override layout rendering with templates
 * Solve mod_rewrite baseUrl - maybe an extra config?
 * History and rollback
+* Allow translations of interface (how are we doing UTF-8 wise?)
+* Search
+* Recent changes page
+* Meta information: categorising, tagging, document title, author
+* Improve test coverage of MarkdownWiki class
 * Tighter/more secure file-update/conflict checking
 * Documentation of layout templates / accessible data structures
-* Improve test coverage of MarkdownWiki class
+
+
 
 Wish list:
 ----------
 
 * REST-based API that deals with raw markdown
 * Figure out a better way of extending the base markdown class.
-  maybe extending the base class and overriding the required methods?
+
+
+Things to consider:
+-------------------
+
 * Authentication / login
+* Export/import markdown documents
+* sub-content / shared modules
+* Navigation items
+* Other text-format types ( textframe or textile )
 
 
