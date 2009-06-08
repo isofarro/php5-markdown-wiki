@@ -319,7 +319,7 @@ class MarkdownWiki {
 	
 	protected function getPostDetails($request, $server) {
 		$post = (object) NULL;
-		$post->text    = $request['text'];
+		$post->text    = stripslashes($request['text']);
 		$post->updated = $request['updated'];
 		return $post;
 	}
