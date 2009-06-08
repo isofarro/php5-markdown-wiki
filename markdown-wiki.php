@@ -30,11 +30,11 @@ class MarkdownWiki {
 	
 	public function wikiLink($link) {
 		global $docIndex;
-
+		
 		$isNew = false;
 		$wikiUrl = $link;
 		
-		if (preg_match('/^\/?([a-z0-9-]+(\/[a-z0-9-]+)*)$/', $link, $matches)) {
+		if (preg_match('/^\/?([a-z0-9-]+(\/[a-z0-9-]+)*)$/i', $link, $matches)) {
 			$wikiUrl = "{$this->baseUrl}{$matches[1]}";
 			$isNew = !$this->isMarkdownFile($link);
 		} elseif ($link=='/') {
@@ -47,7 +47,6 @@ class MarkdownWiki {
 
 	public function isMarkdownFile($link) {
 		$filename = "{$this->config['docDir']}{$link}.{$this->config['markdownExt']}";
-		//echo "{$filename}<br>";
 		return file_exists($filename);
 	}
 
