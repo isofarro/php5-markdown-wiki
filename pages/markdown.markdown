@@ -88,9 +88,9 @@ Movable Type 3.0).
 
 2.  Once installed, Markdown will appear as an option in Movable Type's
 	Text Formatting pop-up menu. This is selectable on a per-post basis:
-	
+
 	![Screenshot of Movable Type 'Text Formatting' Menu][tfmenu]
-	
+
 	Markdown translates your posts to HTML when you publish; the posts
 	themselves are stored in your MT database in Markdown format.
 
@@ -229,5 +229,5 @@ also deserve thanks for their feedback.
   [Jason Perkins]:		http://pressedpants.com/
   [Michel Fortin]:		http://www.michelf.com/projects/php-markdown/
   [html2text]:          http://www.aaronsw.com/2002/html2text/
- 
+
   [tfmenu]: /graphics/markdown/mt_textformat_menu.png
