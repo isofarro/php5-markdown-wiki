@@ -8,18 +8,18 @@ class MarkdownWiki {
 		'newPageText' => 'Start editing your new page',
 		'markdownExt' => 'markdown'
 	);
-	
+
 	// An instance of the Markdown parser
 	protected $parser;
 	protected $baseUrl;
-	
+
 	public function __construct($config=false) {
 		$this->initWiki();
 		if ($config) {
 			$this->setConfig($config);
 		}
 	}
-	
+
 	protected function initWiki() {
 		$baseDir = dirname(__FILE__) . '/';
 
@@ -27,13 +27,13 @@ class MarkdownWiki {
 		//echo "BaseDir: {$baseDir}\n";
 		require_once $baseDir . 'markdown.php';
 	}
-	
+
 	public function wikiLink($link) {
 		global $docIndex;
-		
+
 		$isNew = false;
 		$wikiUrl = $link;
-		
+
 		if (preg_match('/^\/?([a-z0-9-]+(\/[a-z0-9-]+)*)$/i', $link, $matches)) {
 			$wikiUrl = "{$this->baseUrl}{$matches[1]}";
 			$isNew = !$this->isMarkdownFile($link);
@@ -41,7 +41,7 @@ class MarkdownWiki {
 			$wikiUrl = "{$this->baseUrl}{$this->config['defaultPage']}";
 			$isNew = !$this->isMarkdownFile($this->config['defaultPage']);
 		}
-	
+
 		return array($isNew, $wikiUrl);
 	}
 
@@ -57,11 +57,11 @@ class MarkdownWiki {
 	public function handleRequest($request=false, $server=false) {
 		$action           = $this->parseRequest($request, $server);
 		$action->model    = $this->getModelData($action);
-		
+
 		// If this is a new file, switch to edit mode
 		if ($action->model->updated==0 && $action->action=='display') {
 			$action->action = 'edit';
-		}		
+		}
 
 		$action->response = $this->doAction($action);
 		$output           = $this->renderResponse($action->response);
@@ -72,9 +72,9 @@ class MarkdownWiki {
 	##
 	## Methods handling each action
 	##
-	
+
 	public function doAction($action) {
-		
+
 		switch($action->action) {
 			case 'UNKNOWN': # Default to display
 			case 'display':
@@ -93,7 +93,7 @@ class MarkdownWiki {
 			case 'admin':
 			case 'browse':
 			default:
-				$response = array( 
+				$response = array(
 					'messages' => array(
 						"Action {$action->action} not implemented."
 					)
@@ -104,7 +104,7 @@ class MarkdownWiki {
 
 		return $response;
 	}
-	
+
 	protected function doDisplay($action) {
 		$response = array(
 			'title'    => "Displaying: {$action->page}",
@@ -115,10 +115,10 @@ class MarkdownWiki {
 			),
 			'related'  => ''
 		);
-		
+
 		return $response;
 	}
-	
+
 	protected function doEdit($action) {
 		$response = array(
 			'title'    => "Editing: {$action->page}",
@@ -129,10 +129,10 @@ class MarkdownWiki {
 			),
 			'related'  => ''
 		);
-		
+
 		return $response;
 	}
-	
+
 	protected function doPreview($action) {
 		$response = array(
 			'title'    => "Editing: {$action->page}",
@@ -143,7 +143,7 @@ class MarkdownWiki {
 			),
 			'related'  => ''
 		);
-		
+
 		return $response;
 	}
 
@@ -159,7 +159,7 @@ class MarkdownWiki {
 		} else {
 			echo "WARN: Editing conflict!\n";
 		}
-		
+
 		return $this->doDisplay($action);
 	}
 
@@ -169,18 +169,18 @@ class MarkdownWiki {
 
 	protected function getModelData($action) {
 		$data = (object) NULL;
-		
+
 		$data->file    = $this->getFilename($action->page);
 		$data->content = $this->getContent($data->file);
 		$data->updated = $this->getLastUpdated($data->file);
-		
+
 		return $data;
 	}
-	
+
 	protected function setModelData($model) {
 		$directory = dirname($model->file);
 		if (!file_exists($directory)) {
-			mkdir($directory, 0777, true);		
+			mkdir($directory, 0777, true);
 		} elseif (!is_dir($directory)) {
 			echo "ERROR: Cannot create {$model->file}\n";
 		}
@@ -191,16 +191,16 @@ class MarkdownWiki {
 	##
 	## Methods for parsing the incoming request
 	##
-	
+
 	public function parseRequest($request=false, $server=false) {
 		$action = (object) NULL;
 
 		if (!$request) { $request = $_REQUEST; }
 		if (!$server)  { $server  = $_SERVER;  }
-		
+
 		//echo "Request: "; print_r($request);
 		//echo "Server : "; print_r($server);
-		
+
 		$action->method = $this->getMethod($request, $server);
 		$action->page   = $this->getPage($request, $server);
 		$action->action = $this->getAction($request, $server);
@@ -209,50 +209,50 @@ class MarkdownWiki {
 		if ($action->method=='POST') {
 			$action->post = $this->getPostDetails($request, $server);
 		}
-		
+
 		// Take a copy of the action base for the wikiLink function
 		$this->baseUrl = $action->base;
 
 		return $action;
 	}
-	
+
 	protected function getFilename($page) {
 		return "{$this->config['docDir']}{$page}.{$this->config['markdownExt']}";
 	}
-	
+
 	protected function getContent($filename) {
 		if (file_exists($filename)) {
 			return file_get_contents($filename);
 		}
 		return $this->config['newPageText'];
 	}
-	
+
 	protected function getLastUpdated($filename) {
 		if (file_exists($filename)) {
 			return filectime($filename);
 		}
 		return 0;
 	}
-	
+
 	protected function getMethod($request, $server) {
 		if (!empty($server['REQUEST_METHOD'])) {
 			return $server['REQUEST_METHOD'];
 		}
 		return 'UNKNOWN';
 	}
-	
+
 	protected function getPage($request, $server) {
 		$page = '';
-		
+
 		// Determine the page name
 		if (!empty($server['PATH_INFO'])) {
 			//echo "Path info detected\n";
 			// If we are using PATH_INFO then that's the page name
 			$page = substr($server['PATH_INFO'], 1);
-			
+
 		} elseif (!empty($request['id'])) {
 			$page = $request['id'];
-			
+
 		} else {
 			// TODO: Keep checking
 			//echo "WARN: Could not find a pagename\n";
@@ -262,10 +262,10 @@ class MarkdownWiki {
 		if ($page=='' || preg_match('/\/$/', $page)) {
 			$page .= $this->config['defaultPage'];
 		}
-		
+
 		return $page;
 	}
-	
+
 	protected function getAction($request, $server) {
 		if ($server['REQUEST_METHOD']=='POST') {
 			if (!empty($request['preview'])) {
@@ -278,12 +278,12 @@ class MarkdownWiki {
 		} elseif (!empty($server['PATH_INFO'])) {
 			return 'display';
 		}
-		
+
 		// TODO: handle version history etc.
-		
+
 		return 'UNKNOWN';
 	}
-	
+
 	protected function getBaseUrl($request, $server) {
 		if (!empty($this->config['baseUrl'])) {
 			return $this->config['baseUrl'];
@@ -294,7 +294,7 @@ class MarkdownWiki {
     [DOCUMENT_ROOT] => /home/user/sites/default/htdocs
     [SCRIPT_FILENAME] => /home/user/sites/default/htdocs/index-sample.php
     [REQUEST_METHOD] => GET
-    [QUERY_STRING] => 
+    [QUERY_STRING] =>
     [REQUEST_URI] => /index-sample.php
     [SCRIPT_NAME] => /index-sample.php
     [PHP_SELF] => /index-sample.php
@@ -303,7 +303,7 @@ class MarkdownWiki {
 		$scriptName = $server['SCRIPT_NAME'];
 		$requestUrl = $server['REQUEST_URI'];
 		$phpSelf    = $server['PHP_SELF'];
-		
+
 		if ($requestUrl==$scriptName) {
 			// PATH_INFO based
 		} elseif(strpos($requestUrl, $scriptName)===0) {
@@ -312,10 +312,10 @@ class MarkdownWiki {
 			// Maybe mod_rewrite based?
 			// Perhaps we need a config entry here
 		}
-	
+
 		return '/index-sample.php/'; // PATH-INFO base
 	}
-	
+
 	protected function getPostDetails($request, $server) {
 		$post = (object) NULL;
 		$post->text    = stripslashes($request['text']);
@@ -324,9 +324,9 @@ class MarkdownWiki {
 	}
 
 	/*********
-	
-		RESPONSE RENDERERS	
-	
+
+		RESPONSE RENDERERS
+
 	*********/
 
 	public function renderResponse($response) {
@@ -334,7 +334,7 @@ class MarkdownWiki {
 			// TODO: Use a custom template
 		} else {
 			$footer = array();
-			
+
 			if (!empty($response['options'])) {
 				$footer[] = '<ul>';
 				foreach($response['options'] as $label=>$link) {
@@ -357,13 +357,13 @@ HTML;
 		<div id="content">
 {$response['content']}
 {$response['editForm']}
-		</div>	
+		</div>
 		<div id="related">
-{$response['related']}		
-		</div>	
+{$response['related']}
+		</div>
 		<div id="foot">
 {$response['footer']}
-		</div>	
+		</div>
 	</div>
 </body>
 </html>
@@ -374,14 +374,14 @@ PAGE;
 
 	protected function renderDocument($action) {
 		return Markdown(
-			$action->model->content, 
+			$action->model->content,
 			array($this, 'wikiLink')
 		);
 	}
 
 	protected function renderPreviewDocument($action) {
 		return Markdown(
-			$action->post->text, 
+			$action->post->text,
 			array($this, 'wikiLink')
 		);
 	}
@@ -391,7 +391,7 @@ PAGE;
 			$form = array(
 				'raw'     => $action->post->text,
 				'updated' => $action->post->updated
-			);		
+			);
 		} else {
 			$form = array(
 				'raw'     => $action->model->content,
@@ -403,7 +403,7 @@ PAGE;
 <form action="{$action->base}{$action->page}" method="post">
 	<fieldset>
 		<legend>Editing</legend>
-		<label for="text">Content:</label><br>	
+		<label for="text">Content:</label><br>
 		<textarea cols="78" rows="20" name="text" id="text">{$form['raw']}</textarea>
 		<br>
 

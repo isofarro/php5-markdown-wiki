@@ -9,12 +9,12 @@ class MarkdownWikiTest extends PHPUnit_Framework_TestCase {
 		'defaultPage' => 'TestDefaultPage',
 		'newPageText' => 'This is a new test page'
 	);
-	
+
 	public function setUp() {
 		$this->wiki = new MarkdownWiki($this->config);
 	}
-	
-	
+
+
 
 	public function testRequestReturnsAction() {
 		$request = array();
@@ -22,7 +22,7 @@ class MarkdownWikiTest extends PHPUnit_Framework_TestCase {
 			'REQUEST_METHOD' => 'GET',
 			'PATH_INFO'      => '/TestPageName'
 		);
-		
+
 		$action = $this->wiki->parseRequest($request, $server);
 		$this->assertNotNull($action);
 		$this->assertType('stdClass', $action);
@@ -40,14 +40,14 @@ class MarkdownWikiTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals('GET', $action->method);
 
 	}
-	
+
 	public function testDefaultPathInfoPageRequestAction() {
 		$request = array();
 		$server  = array(
 			'REQUEST_METHOD' => 'GET',
 			'PATH_INFO'      => '/'
 		);
-		
+
 		$action = $this->wiki->parseRequest($request, $server);
 		$this->assertEquals('TestDefaultPage', $action->page);
 		$this->assertEquals('GET', $action->method);
@@ -62,14 +62,14 @@ class MarkdownWikiTest extends PHPUnit_Framework_TestCase {
 			'REQUEST_METHOD' => 'GET',
 			'PATH_INFO'      => '/Directory/'
 		);
-		
+
 		$action = $this->wiki->parseRequest($request, $server);
 		$this->assertEquals('Directory/TestDefaultPage', $action->page);
 		$this->assertEquals('GET', $action->method);
 		$this->assertEquals('display', $action->action);
 
 	}
-	
+
 	public function testSavePostRequestAction() {
 		$request = array(
 			'save'    => 'Save this page',
@@ -107,18 +107,18 @@ class MarkdownWikiTest extends PHPUnit_Framework_TestCase {
 	public function testModelReturnsDataObject() {
 		$action = (object) NULL;
 		$action->page = 'index';
-		
+
 		$model = $this->wiki->getModelData($action);
 		$this->assertNotNull($model);
 		$this->assertEquals($this->config['docDir'].'index.text', $model->file);
 		$this->assertEquals($this->config['newPageText'], $model->content);
 		//print_r($model);
 	}
-	
+
 	public function testDoUnknownAction() {
 		$action         = (object) NULL;
 		$action->page   = 'index';
-		$action->action = 'UNKNOWN';		
+		$action->action = 'UNKNOWN';
 
 		$response = $this->wiki->doAction($action);
 		$this->assertNotNull($response);
