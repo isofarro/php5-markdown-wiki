@@ -10,6 +10,34 @@ Currently I've hacked the link handling methods in the markdown class so that re
 
 So a link syntax of `[My page](myDir/myPage)` will be treated as a wiki link and linked to the page `{$wikibase}/myDir/myPage}`, so looking for a file called *myPage.markdown* in the directory *myDir* which is a sub-directory of the document directory.
 
+
+Nginx Config
+------------
+
+    server {
+        listen 80;
+        server_name examplek.com;
+
+        root /var/www;
+        index index.php index.html index.htm;
+
+        location ~ /markdown/ {
+            try_files $uri /markdown.php?$args;
+            include fastcgi_params;
+            fastcgi_pass unix:/var/run/php5-fpm.sock;
+        }
+
+        location ~ \.php$ {
+            try_files $uri /index.php;
+            include fastcgi_params;
+            fastcgi_pass unix:/var/run/php5-fpm.sock;
+        }
+
+        access_log /var/log/www/access.log;
+        error_log  /var/log/www/error.log;
+    }
+
+
 ------
 
 To-do:
