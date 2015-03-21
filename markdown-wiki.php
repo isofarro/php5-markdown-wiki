@@ -313,7 +313,7 @@ class MarkdownWiki {
 			// Perhaps we need a config entry here
 		}
 	
-		return '/index-sample.php/'; // PATH-INFO base
+		return '/markdown/'; // PATH-INFO base
 	}
 	
 	protected function getPostDetails($request, $server) {
